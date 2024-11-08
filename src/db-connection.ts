@@ -1,22 +1,18 @@
-import dotenv from "dotenv";
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
+// ambil variabel environment dari file .env
 dotenv.config();
 
-const DATABASE_URI = process.env.DATABASE_URI;
-
-if (!DATABASE_URI) {
-  throw new Error("Please define the DATABASE_URI environment variable");
-}
-
-async function connectDB() {
+const connectDB = async () => {
   try {
-    await mongoose.connect(DATABASE_URI as string, { connectTimeoutMS: 60000 });
-    console.log("MongoDB connected successfully");
+    // Menghubungkan ke MongoDB tanpa opsi tambahan yang sudah tidak diperlukan
+    await mongoose.connect(process.env.MONGODB_URI || '');
+    console.log('MongoDB terhubung');
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-    process.exit(1);
+    console.error('Gagal menghubungkan MongoDB:', error);
+    process.exit(1);  // Keluar dari aplikasi jika koneksi gagal
   }
-}
+};
 
 export default connectDB;

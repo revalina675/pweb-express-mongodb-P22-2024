@@ -1,77 +1,90 @@
-import type { Request, Response } from 'express';
-import BookService from '../services/book.service';
+import { Request, Response } from 'express';
+import Book from '../models/book.models'; 
 
-export class BookController {
-  async addBook(req: Request, res: Response) {
-    try { 
-      const book = await BookService.addBook(req.body);
-      res.status(201).json(book);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(400).json({ message: 'Unknown error' });
-      }
-    }
+// Mengambil daftar buku
+export const getBooks = async (req: Request, res: Response) => {
+  try {
+    const books = await Book.find();
+    res.status(200).json({
+      status: 'success',
+      message: 'Books retrieved successfully',
+      data: books
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Error fetching books', data: [] });
   }
+};
 
-  async getAllBooks(req: Request, res: Response) {
-    try {
-      const books = await BookService.getAllBooks();
-      res.json(books);
-    } catch (error: any) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(400).json({ message: 'Unknown error' });
-      }
-    }
+// Menambahkan buku baru
+export const addBook = async (req: Request, res: Response) => {
+  try {
+    const { title, author, publishedDate, qty } = req.body;
+    const newBook = new Book({ title, author, publishedDate, qty });
+    await newBook.save();
+    res.status(201).json({
+      status: 'success',
+      message: 'Book added successfully',
+      data: newBook
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'failed', message: 'Error adding book', data: {} });
   }
+};
 
-  async getBookById(req: Request, res: Response) {
-    try {
-      const book = await BookService.getBookById(req.params.id);
-      if (!book) {
-        res.status(404).json({ message: 'Book not found' });
-        return;
-      }
-      res.json(book);
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(500).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Unknown error' });
-      }
+// Mengambil buku berdasarkan ID
+export const getBookById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const book = await Book.findById(id);
+    if (!book) {
+      res.status(404).json({ status: 'failed', message: 'Book not found' });
+      return;
     }
+    res.status(200).json({ status: 'success', data: book });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Error fetching book', data: {} });
   }
+};
 
-  async modifyBook(req: Request, res: Response) {
-    try {
-        const book = await BookService.modifyBook(req.params.id, req.body);
-        res.json(book);
-    } catch (error) {
-        if (error instanceof Error && error.message.includes('Invalid book ID format')) {
-            res.status(400).json({ message: error.message }); 
-        } else if (error instanceof Error && error.message.includes('not found')) {
-            res.status(404).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: 'Internal server error' }); 
-        }
+// Mengupdate data buku berdasarkan ID
+export const updateBook = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body; // Ambil data yang ingin diubah
+    const updatedBook = await Book.findByIdAndUpdate(id, updates, { new: true });
+    
+    if (!updatedBook) {
+      res.status(404).json({ status: 'failed', message: 'Book not found' });
+      return;
     }
-  }
 
-  async removeBook(req: Request, res: Response) {
-    try {
-        const book = await BookService.removeBook(req.params.id);
-        res.json({ message: 'Book deleted successfully', book });
-    } catch (error) {
-        if (error instanceof Error && error.message.includes('Invalid book ID format')) {
-            res.status(400).json({ message: error.message });
-        } else if (error instanceof Error && error.message.includes('not found')) {
-            res.status(404).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: 'Internal server error' });
-        }
-    }
+    res.status(200).json({
+      status: 'success',
+      message: 'Book updated successfully',
+      data: updatedBook
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Error updating book', data: {} });
   }
-}
+};
+
+// Menghapus buku berdasarkan ID
+export const deleteBook = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedBook = await Book.findByIdAndDelete(id);
+
+    if (!deletedBook) {
+      res.status(404).json({ status: 'failed', message: 'Book not found' });
+      return;
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Book deleted successfully',
+      data: {}
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Error deleting book', data: {} });
+  }
+};

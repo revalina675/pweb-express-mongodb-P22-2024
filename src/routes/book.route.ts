@@ -1,13 +1,21 @@
-import { Router } from 'express';
-import { BookController } from '../controllers/book.controllers';
+import { Router } from 'express'; 
+import { getBooks, addBook, getBookById, updateBook, deleteBook } from '../controllers/book.controllers'; 
 
 const router = Router();
-const bookController = new BookController();
 
-router.post('/', bookController.addBook);
-router.get('/', bookController.getAllBooks);
-router.get('/:id', bookController.getBookById);
-router.patch('/:id', bookController.modifyBook);
-router.delete('/:id', bookController.removeBook);
+// mendapatkan semua buku
+router.get('/', getBooks);
+
+// menambahkan buku
+router.post('/', addBook);
+
+// mendapatkan buku berdasarkan ID
+router.get('/:id', getBookById);
+
+// update buku berdasarkan ID
+router.patch('/:id', updateBook); 
+
+// hapus buku berdasarkan ID
+router.delete('/:id', deleteBook); 
 
 export default router;
